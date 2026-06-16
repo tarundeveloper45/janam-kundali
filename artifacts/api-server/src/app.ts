@@ -41,7 +41,7 @@ const publicDir = path.resolve(__dirname, "public");
 if (existsSync(publicDir)) {
   app.use(express.static(publicDir));
   // SPA fallback — send index.html for any non-API route
-  app.get("*", (_req, res) => {
+  app.use((_req, res) => {
     res.sendFile(path.join(publicDir, "index.html"));
   });
   logger.info({ publicDir }, "Serving static frontend");
