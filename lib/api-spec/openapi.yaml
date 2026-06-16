@@ -1,0 +1,343 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Janam Kundali API - Vedic birth chart generator
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: kundali
+    description: Vedic birth chart operations
+  - name: geocode
+    description: Geocoding and place search operations
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /kundali/generate:
+    post:
+      operationId: generateKundali
+      tags: [kundali]
+      summary: Generate Janam Kundali
+      description: Generate a complete Vedic birth chart for the given birth details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BirthDetails"
+      responses:
+        "200":
+          description: Generated Kundali chart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KundaliChart"
+        "400":
+          description: Invalid birth details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /geocode/search:
+    get:
+      operationId: searchPlaces
+      tags: [geocode]
+      summary: Search places by name
+      description: Search for places/cities to get lat/lng and timezone
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Place name query
+      responses:
+        "200":
+          description: List of matching places
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Place"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    BirthDetails:
+      type: object
+      required:
+        - name
+        - date
+        - time
+        - latitude
+        - longitude
+        - timezone
+        - place
+      properties:
+        name:
+          type: string
+          description: Full name of the person
+        date:
+          type: string
+          description: Birth date in YYYY-MM-DD format
+        time:
+          type: string
+          description: Birth time in HH:MM (24-hour) format
+        latitude:
+          type: number
+          description: Birth place latitude
+        longitude:
+          type: number
+          description: Birth place longitude
+        timezone:
+          type: string
+          description: IANA timezone identifier (e.g. Asia/Kolkata)
+        place:
+          type: string
+          description: Birth place name
+
+    KundaliChart:
+      type: object
+      required:
+        - birthDetails
+        - ascendant
+        - planets
+        - houses
+        - moonSign
+        - sunSign
+        - nakshatra
+        - yogas
+      properties:
+        birthDetails:
+          $ref: "#/components/schemas/BirthDetails"
+        ascendant:
+          $ref: "#/components/schemas/AscendantInfo"
+        planets:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanetInfo"
+        houses:
+          type: array
+          items:
+            $ref: "#/components/schemas/HouseInfo"
+        moonSign:
+          type: string
+          description: Rashi (Moon sign)
+        sunSign:
+          type: string
+          description: Sun sign (Vedic)
+        nakshatra:
+          $ref: "#/components/schemas/NakshatraInfo"
+        yogas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Yoga"
+
+    AscendantInfo:
+      type: object
+      required:
+        - sign
+        - signIndex
+        - degree
+        - degreeFull
+      properties:
+        sign:
+          type: string
+          description: Lagna sign name
+        signIndex:
+          type: integer
+          description: Sign index 0-11
+        degree:
+          type: number
+          description: Degree within sign (0-30)
+        degreeFull:
+          type: number
+          description: Full ecliptic degree (0-360)
+
+    PlanetInfo:
+      type: object
+      required:
+        - name
+        - symbol
+        - sign
+        - signIndex
+        - house
+        - degree
+        - degreeFull
+        - isRetrograde
+        - nakshatra
+        - nakshatraPada
+        - lord
+      properties:
+        name:
+          type: string
+          description: Planet name in English
+        nameHindi:
+          type: string
+          description: Planet name in Sanskrit/Hindi
+        symbol:
+          type: string
+          description: Planet symbol character
+        sign:
+          type: string
+          description: Zodiac sign name
+        signIndex:
+          type: integer
+          description: Sign index 0-11
+        house:
+          type: integer
+          description: House number 1-12
+        degree:
+          type: number
+          description: Degree within sign (0-30)
+        degreeFull:
+          type: number
+          description: Full ecliptic degree (0-360)
+        isRetrograde:
+          type: boolean
+          description: Whether the planet is retrograde
+        nakshatra:
+          type: string
+          description: Nakshatra name
+        nakshatraPada:
+          type: integer
+          description: Nakshatra pada 1-4
+        lord:
+          type: string
+          description: Sign lord planet name
+
+    HouseInfo:
+      type: object
+      required:
+        - number
+        - sign
+        - signIndex
+        - degree
+        - lord
+      properties:
+        number:
+          type: integer
+          description: House number 1-12
+        sign:
+          type: string
+          description: Sign occupying this house cusp
+        signIndex:
+          type: integer
+          description: Sign index 0-11
+        degree:
+          type: number
+          description: Degree of the house cusp
+        lord:
+          type: string
+          description: House lord
+
+    NakshatraInfo:
+      type: object
+      required:
+        - name
+        - pada
+        - lord
+        - deity
+        - symbol
+      properties:
+        name:
+          type: string
+          description: Nakshatra name (birth nakshatra based on Moon)
+        pada:
+          type: integer
+          description: Pada 1-4
+        lord:
+          type: string
+          description: Nakshatra lord
+        deity:
+          type: string
+          description: Presiding deity
+        symbol:
+          type: string
+          description: Nakshatra symbol
+
+    Yoga:
+      type: object
+      required:
+        - name
+        - description
+        - isPresent
+      properties:
+        name:
+          type: string
+          description: Yoga name
+        description:
+          type: string
+          description: Brief description of the yoga
+        isPresent:
+          type: boolean
+          description: Whether this yoga is present in the chart
+
+    Place:
+      type: object
+      required:
+        - name
+        - country
+        - latitude
+        - longitude
+        - timezone
+      properties:
+        name:
+          type: string
+          description: Place name
+        country:
+          type: string
+          description: Country name
+        state:
+          type: ["string", "null"]
+          description: State/province name
+        latitude:
+          type: number
+          description: Latitude
+        longitude:
+          type: number
+          description: Longitude
+        timezone:
+          type: string
+          description: IANA timezone identifier
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message

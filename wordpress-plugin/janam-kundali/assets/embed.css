@@ -1,0 +1,24 @@
+/* Janam Kundali — responsive iframe wrapper */
+.jk-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.jk-iframe {
+    display: block;
+    width: 100%;
+    height: var(--jk-height, 900px);
+    border: none;
+    background: #0f1035;
+}
+
+@media (max-width: 600px) {
+    .jk-iframe {
+        height: calc(var(--jk-height, 900px) * 1.2);
+    }
+}
